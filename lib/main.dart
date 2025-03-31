@@ -19,7 +19,7 @@ class AccumulateApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginScreen(), // Now it uses the separate login_screen.dart
+      home: const LoginScreen(), // Uses the separate login_screen.dart
     );
   }
 }

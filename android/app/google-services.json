@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "516552521209",
+    "project_id": "accumulate-7cc31",
+    "storage_bucket": "accumulate-7cc31.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:516552521209:android:e5bca4eee7f3ea6b2db928",
+        "android_client_info": {
+          "package_name": "com.example.accumulate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoPaP3cxWNt-KY9k1LtmwgFGAuX2U554Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

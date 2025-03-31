@@ -19,25 +19,36 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // Create user in Firebase Authentication
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
-        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-          'full_name': _nameController.text,
-          'email': _emailController.text,
+        // Get the unique Firebase Authentication UID
+        String userId = userCredential.user!.uid;
+
+        // Save user details in Firestore using UID as the document ID
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'full_name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
           'created_at': Timestamp.now(),
         });
 
-        if (!mounted) return; // Ensure widget is still mounted
+        print(" User account created successfully! UID: $userId");
+
+        if (!mounted) return; // Ensure widget is still mounted before showing UI feedback
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account Created Successfully')),
         );
+
+        // Navigate back to login screen
         Navigator.pop(context);
       } catch (e) {
-        if (!mounted) return; // Ensure widget is still mounted
+        print(" Sign Up Failed: ${e.toString()}");
+
+        if (!mounted) return; // Ensure widget is still mounted before showing UI feedback
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
@@ -57,6 +68,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Full Name Field
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -71,6 +83,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 },
               ),
               const SizedBox(height: 12),
+
+              // Email Field
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -85,6 +99,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 },
               ),
               const SizedBox(height: 12),
+
+              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -100,6 +116,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Sign Up Button
               ElevatedButton(
                 onPressed: _signUp,
                 child: const Text('Sign Up'),
@@ -111,3 +129,4 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     );
   }
 }
+
