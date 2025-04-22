@@ -21,8 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       try {
         UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -30,14 +30,13 @@ class _LoginScreenState extends State<LoginScreen> {
             .doc(userCredential.user!.uid)
             .get();
 
-        if (!mounted) return; // Ensure widget is still mounted
+        if (!mounted) return;
 
         if (userDoc.exists) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Welcome back, ${userDoc['full_name']}!')),
           );
-          
-          // Navigate to home screen after login
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -56,34 +55,59 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login to Accumulate')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: Colors.grey[100], // Light background for a clean look
+      appBar: AppBar(
+        title: const Text('Accumulate Login'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Icon(Icons.account_balance_wallet, size: 100, color: Colors.teal),
+              const SizedBox(height: 20),
+              const Text(
+                "Welcome Back!",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Login to continue managing your finances",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+
+              // Email Field
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your email',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter your email';
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+
+              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your password',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
                   if (value == null || value.length < 6) {
@@ -92,12 +116,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Login'),
+              const SizedBox(height: 30),
+
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _login,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: Colors.teal,
+                  ),
+                  child: const Text('Login', style: TextStyle(fontSize: 18)),
+                ),
               ),
-              const SizedBox(height: 10),
+
+              const SizedBox(height: 20),
+
+              // Create Account Button
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -105,7 +142,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
                   );
                 },
-                child: const Text('Create New Account'),
+                child: const Text(
+                  "Don't have an account? Sign Up",
+                  style: TextStyle(fontSize: 16, color: Colors.teal),
+                ),
               ),
             ],
           ),
@@ -114,3 +154,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

@@ -19,36 +19,28 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
       try {
-        // Create user in Firebase Authentication
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // Get the unique Firebase Authentication UID
         String userId = userCredential.user!.uid;
 
-        // Save user details in Firestore using UID as the document ID
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'full_name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'created_at': Timestamp.now(),
         });
 
-        print(" User account created successfully! UID: $userId");
-
-        if (!mounted) return; // Ensure widget is still mounted before showing UI feedback
+        if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account Created Successfully')),
         );
 
-        // Navigate back to login screen
         Navigator.pop(context);
       } catch (e) {
-        print(" Sign Up Failed: ${e.toString()}");
-
-        if (!mounted) return; // Ensure widget is still mounted before showing UI feedback
+        if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
@@ -60,53 +52,76 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: Colors.grey[100], // Consistent background
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Full Name Field
+              const Icon(Icons.person_add_alt_1, size: 100, color: Colors.teal),
+              const SizedBox(height: 20),
+              const Text(
+                "Let's Get Started!",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Create your Accumulate account",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+
+              // Full Name
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Full Name',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your full name',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your full name';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter your full name';
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-              // Email Field
+              // Email
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your email',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter your email';
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-              // Password Field
+              // Password
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter a secure password',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
                   if (value == null || value.length < 6) {
@@ -115,12 +130,20 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
               // Sign Up Button
-              ElevatedButton(
-                onPressed: _signUp,
-                child: const Text('Sign Up'),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _signUp,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: Colors.teal,
+                  ),
+                  child: const Text('Create Account', style: TextStyle(fontSize: 18)),
+                ),
               ),
             ],
           ),

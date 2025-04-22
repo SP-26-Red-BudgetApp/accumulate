@@ -17,19 +17,23 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Budget Breakdown')),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Budget Categories'),
+        centerTitle: true,
+        elevation: 0,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Your Budget Categories',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Manage your Budgets',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
-            // List of Budget Categories
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: _getUserBudgetStream(),
@@ -43,19 +47,25 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
 
                   var budgetDocs = snapshot.data!.docs;
 
-                  return ListView.builder(
+                  return ListView.separated(
                     itemCount: budgetDocs.length,
+                    separatorBuilder: (context, index) => const Divider(height: 20),
                     itemBuilder: (context, index) {
                       var budget = budgetDocs[index];
                       return ListTile(
-                        title: Text(budget['category']),
+                        tileColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        title: Text(
+                          budget['category'],
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '\$${budget['amount'].toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.green, fontSize: 16),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              "\$${budget['amount'].toStringAsFixed(2)}",
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => _editCategoryDialog(budget),
@@ -73,12 +83,19 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
               ),
             ),
 
-            // Add Category Button
-            const SizedBox(height: 10),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => _showAddCategoryDialog(),
-                child: const Text("Add Category"),
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _showAddCategoryDialog,
+                icon: const Icon(Icons.add),
+                label: const Text("Add New Category", style: TextStyle(fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: Colors.teal,
+                ),
               ),
             ),
           ],
@@ -87,15 +104,13 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     );
   }
 
-  // ✅ Get budget stream for the logged-in user
   Stream<QuerySnapshot>? _getUserBudgetStream() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    
+
     return _firestore.collection('users').doc(user.uid).collection('budget').snapshots();
   }
 
-  // ✅ Function to add a new budget category
   void _addCategory() async {
     String category = _categoryController.text.trim();
     double? amount = double.tryParse(_amountController.text);
@@ -103,7 +118,7 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: No user logged in.')),
+        const SnackBar(content: Text('No user logged in')),
       );
       return;
     }
@@ -113,25 +128,24 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
         await _firestore.collection('users').doc(user.uid).collection('budget').add({
           'category': category,
           'amount': amount,
-          'created_at': FieldValue.serverTimestamp(), // Helps with ordering
+          'created_at': FieldValue.serverTimestamp(),
         });
-
-        print("✅ Budget added: Category: $category, Amount: $amount");
 
         _categoryController.clear();
         _amountController.clear();
-        Navigator.pop(context); // Close the dialog after adding
+        Navigator.pop(context);
       } catch (e) {
-        print("❌ Error adding budget: ${e.toString()}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter category and amount.')),
+        const SnackBar(content: Text('Please enter valid category and amount')),
       );
     }
   }
 
-  // ✅ Function to update a budget category
   void _updateCategory(String docId, double newAmount) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -143,7 +157,6 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     Navigator.pop(context);
   }
 
-  // ✅ Function to delete a budget category
   void _deleteCategory(String docId) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -151,7 +164,6 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     await _firestore.collection('users').doc(user.uid).collection('budget').doc(docId).delete();
   }
 
-  // ✅ Show dialog to enter a new budget category
   void _showAddCategoryDialog() {
     showDialog(
       context: context,
@@ -163,12 +175,19 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
             children: [
               TextField(
                 controller: _categoryController,
-                decoration: const InputDecoration(labelText: "Category Name"),
+                decoration: const InputDecoration(
+                  labelText: "Category Name",
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 10),
               TextField(
                 controller: _amountController,
-                decoration: const InputDecoration(labelText: "Amount"),
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Amount",
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
@@ -179,6 +198,7 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
             ),
             ElevatedButton(
               onPressed: _addCategory,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
               child: const Text("Add"),
             ),
           ],
@@ -187,7 +207,6 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     );
   }
 
-  // ✅ Show dialog to edit a budget category
   void _editCategoryDialog(DocumentSnapshot budget) {
     _amountController.text = budget['amount'].toString();
 
@@ -198,8 +217,11 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
           title: Text("Edit ${budget['category']}"),
           content: TextField(
             controller: _amountController,
-            decoration: const InputDecoration(labelText: "New Amount"),
             keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: "New Amount",
+              border: OutlineInputBorder(),
+            ),
           ),
           actions: [
             TextButton(
@@ -213,6 +235,7 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
                   _updateCategory(budget.id, newAmount);
                 }
               },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
               child: const Text("Update"),
             ),
           ],
@@ -221,5 +244,4 @@ class _BudgetDetailsScreenState extends State<BudgetDetailsScreen> {
     );
   }
 }
-
 
